@@ -1,0 +1,15 @@
+{
+  "name": "ct-generate-index",
+  "version": "1.0.0",
+  "description": "Coding Train Website - Generates index.json files",
+  "exports": "./index.js",
+  "type": "module",
+  "author": "Dipam Sen",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^19.0.7",
+    "dotenv": "^16.0.3",
+    "front-matter": "^4.0.2",
+    "inquirer": "^9.1.5"
+  }
+}

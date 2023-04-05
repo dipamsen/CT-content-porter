@@ -144,15 +144,28 @@ if (type === "old") {
     {
       type: "confirm",
       name: "confirm",
-      message: "Do you want to use an existing video as a template?",
+      message:
+        "Do you want to use an existing video as a template? (Requires GitHub token)",
       default: true,
     },
   ]);
   let json = { languages: [], topics: [] };
   if (confirm) {
+    if (!process.env.GITHUB_TOKEN) {
+      const { token } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "token",
+          message:
+            "Enter a GitHub personal access token (classic) with the public_repo scope.",
+        },
+      ]);
+      process.env.GITHUB_TOKEN = token;
+    }
     const tree = await GitHub.getFiles({
       owner: "CodingTrain",
       repo: "thecodingtrain.com",
+      auth: process.env.GITHUB_TOKEN,
     });
     const mapper = (dir) =>
       dir.object.entries?.find((d) => d.name === "index.json")

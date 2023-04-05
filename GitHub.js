@@ -17,7 +17,8 @@ export async function getContents({ owner, repo, path }) {
   return decodedContent;
 }
 
-export async function getFiles({ owner, repo, glob }) {
+export async function getFiles({ owner, repo, glob, auth }) {
+  const octokit = new Octokit({ auth });
   const {
     repository: {
       defaultBranchRef: {

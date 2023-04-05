@@ -14,12 +14,6 @@ The script can directly be run from the command line with `npx`:
 npx github:dipamsen/CT-content-porter
 ```
 
-> For using an existing video as a template, you need to add a GITHUB_TOKEN environment variable in the `.env` file with a valid GitHub token.
->
-> ```
-> GITHUB_TOKEN=your_token_here
-> ```
-
 ## Screenshots
 
 ### Creating new video

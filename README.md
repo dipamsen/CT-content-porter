@@ -1,6 +1,6 @@
-# Coding Train Website - Content Creation
+# Coding Train Website - `index.json` template
 
-This script helps in generating `index.json` files for creating videos for the Coding Train website.
+This script helps in generating a basic template for `index.json` files for creating videos for the Coding Train website.
 
 ![](screenshots/1.png)
 

@@ -10,6 +10,10 @@ import { createResolver, snakeCase } from "./utils.js";
 import searchList from "inquirer-search-list";
 inquirer.registerPrompt("search-list", searchList);
 
+console.log();
+console.log("Coding Train index.json generator");
+console.log();
+
 const { type } = await inquirer.prompt([
   {
     type: "list",

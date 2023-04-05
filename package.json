@@ -6,6 +6,9 @@
   "type": "module",
   "author": "Dipam Sen",
   "license": "MIT",
+  "bin": {
+    "CT-content-porter": "./index.js"
+  },
   "dependencies": {
     "@octokit/rest": "^19.0.7",
     "dotenv": "^16.0.3",

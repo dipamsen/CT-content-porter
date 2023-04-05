@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import dotenv from "dotenv";
 dotenv.config();
 import { video as videoTemplate } from "./template.js";

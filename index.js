@@ -1,12 +1,12 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { video as videoTemplate } from "./template.js";
 import inquirer from "inquirer";
-import dotenv from "dotenv";
-import util from "util";
 import * as GitHub from "./GitHub.js";
 import { parseYaml } from "./yaml-parse.js";
 import { createResolver, snakeCase } from "./utils.js";
-
-dotenv.config();
+import searchList from "inquirer-search-list";
+inquirer.registerPrompt("search-list", searchList);
 
 const { type } = await inquirer.prompt([
   {
@@ -72,23 +72,6 @@ if (type === "old") {
     ])
   );
 
-  // const info = await inquirer.prompt(
-  //   Object.entries(videoTemplate.init.properties)
-  //     .map(([key, value]) => {
-  //       if (value.type === "array" && value.content.type === "object") {
-  //         return;
-  //       }
-
-  //       return {
-  //         type: "input",
-  //         name: key,
-  //         message: value.description,
-  //         default: resolverByName[key](attributes[snakeCase(key)], attributes),
-  //       };
-  //     })
-  //     .filter((x) => x)
-  // );
-
   info.languages = info.languages.split(",").map((x) => x.trim());
   info.topics = info.topics.split(",").map((x) => x.trim());
   Object.keys(info).forEach((key) => {
@@ -145,18 +128,99 @@ if (type === "old") {
   const contributions = attributes.contributions;
   contributions?.forEach((c, i) => {
     console.log();
-    console.log(">>> contribution" + (i + 1) + ".json");
+    console.log(">>> showcase/contribution" + (i + 1) + ".json");
     console.log(JSON.stringify(c, null, 2));
   });
 
   // console.log(videoTemplate.init.properties);
 } else if (type === "new") {
-  const res = await inquirer.prompt([
+  const { confirm } = await inquirer.prompt([
     {
-      type: "input",
-      name: "url",
-      message: "Enter the url of the video on youtube",
+      type: "confirm",
+      name: "confirm",
+      message: "Do you want to use an existing video as a template?",
+      default: true,
     },
   ]);
-  console.log(res);
+  let json = { languages: [], topics: [] };
+  if (confirm) {
+    const tree = await GitHub.getFiles({
+      owner: "CodingTrain",
+      repo: "thecodingtrain.com",
+    });
+    const mapper = (dir) =>
+      dir.object.entries?.find((d) => d.name === "index.json")
+        ? (delete dir.object, dir)
+        : dir.object.entries?.map(
+            (e) => ((e.path = (dir.path || dir.name) + "/" + e.name), e)
+          );
+    const videos = tree
+      .find((d) => d.name === "content")
+      .object.entries.find((d) => d.name === "videos")
+      .object.entries.map(mapper)
+      .map((e) => (Array.isArray(e) ? e.map(mapper) : e));
+    const paths = videos
+      .flat(Infinity)
+      .filter((x) => x)
+      .map((d) => d.path);
+
+    const { path } = await inquirer.prompt([
+      {
+        type: "search-list",
+        name: "path",
+        message: "Select a video to use as a template",
+        choices: paths,
+      },
+    ]);
+    json = JSON.parse(
+      await GitHub.getContents({
+        owner: "CodingTrain",
+        repo: "thecodingtrain.com",
+        path: `content/videos/${path}/index.json`,
+      })
+    );
+  }
+
+  const info = await inquirer.prompt(
+    Object.entries(videoTemplate.init.properties)
+      .map(([key, value]) => {
+        if (value.type === "array" && value.content.type === "object") {
+          return;
+        }
+
+        return {
+          type: "input",
+          name: key,
+          message: value.description,
+          default: json[key],
+        };
+      })
+      .filter((x) => x)
+  );
+  if (info.languages && !Array.isArray(info.languages)) {
+    info.languages = info.languages.split(",").map((x) => x.trim());
+  }
+  if (info.topics && !Array.isArray(info.topics)) {
+    info.topics = info.topics.split(",").map((x) => x.trim());
+  }
+
+  Object.keys(info).forEach((key) => {
+    if (Array.isArray(info[key])) {
+      info[key] = info[key].filter((x) => x);
+    }
+    if (info[key] === "") {
+      delete info[key];
+    }
+  });
+  info.timestamps = [];
+  info.codeExamples = json.codeExamples || [];
+  info.groupLinks = json.groupLinks || [];
+  info.credits = [
+    { title: "Editing", name: "Mathieu Blanchette" },
+    { title: "Animations", name: "Jason Heglund" },
+  ];
+
+  console.log();
+  console.log(">>> index.json");
+  console.log(JSON.stringify(info, null, 2));
 }
